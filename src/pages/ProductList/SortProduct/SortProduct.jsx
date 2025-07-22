@@ -25,7 +25,6 @@ export default function SortProduct({ queryConfig, pageSize }) {
     });
   };
   const handlePriceOrder = (orderValue) => {
-    console.log(sortBy.price);
     navigate({
       pathname: "/",
       search: createSearchParams({
@@ -92,9 +91,8 @@ export default function SortProduct({ queryConfig, pageSize }) {
             className={classNames(
               "h-8 px-4 bg-white  text-sm text-left outline-none",
               {
-                "text-white bg-orange-500 hover:bg-orange-400 ": isActiveSortBy(
-                  sortBy.price
-                ),
+                "text-blue-500  hover:bg-orange-400 hover:text-white bg-orange-500 ":
+                  isActiveSortBy(sortBy.price),
                 "bg-white text-black hover:bg-slate-100 ": !isActiveSortBy(
                   sortBy.price
                 ),

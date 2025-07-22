@@ -1,6 +1,9 @@
-import { Link } from "react-router-dom";
+import { createSearchParams, Link } from "react-router-dom";
 import Button from "../../../Components/Button/Button";
-export default function AsideFilter() {
+import classNames from "classnames";
+export default function AsideFilter({ queryConfig, categories }) {
+  const { category } = queryConfig;
+  // console.log(category, categories);
   return (
     <div className="py-4">
       <Link to="" className="flex items-center font-bold">
@@ -21,18 +24,37 @@ export default function AsideFilter() {
       </Link>
       <div className="h-[1px] bg-gray-300 my-4"></div>
       <ul>
-        <li className="py-2 pl-2">
-          <Link to="" className="relative px-2 text-orange-500 font-semibold">
-            <svg
-              viewBox="0 0 4 7"
-              className="fill-orange-500 h-2 w-2 absolute top-1 left-[-10px]"
-            >
-              <polygon points="4 3.5 0 0 0 7"></polygon>
-            </svg>
-            Thời trang nam
-          </Link>
-        </li>
-        <li className="py-2 pl-2">
+        {categories.map((categoryItem) => {
+          const isActive = category === categoryItem._id;
+          return (
+            <li className="py-2 pl-2" key={categoryItem._id}>
+              <Link
+                to={{
+                  pathname: "/",
+                  search: createSearchParams({
+                    ...queryConfig,
+                    category: categoryItem._id,
+                  }).toString(),
+                }}
+                className={classNames("relative px-2 ", {
+                  "text-orange-500 font-semibold": isActive,
+                })}
+              >
+                {isActive && (
+                  <svg
+                    viewBox="0 0 4 7"
+                    className="fill-orange-500 h-2 w-2 absolute top-1 left-[-10px]"
+                  >
+                    <polygon points="4 3.5 0 0 0 7"></polygon>
+                  </svg>
+                )}
+                {categoryItem.name}
+              </Link>
+            </li>
+          );
+        })}
+
+        {/* <li className="py-2 pl-2">
           <Link to="" className="relative px-2">
             Áo khoác
           </Link>
@@ -41,7 +63,7 @@ export default function AsideFilter() {
           <Link to="" className="relative px-2">
             Điện thoại
           </Link>
-        </li>
+        </li> */}
       </ul>
       <div className="flex items-center font-bold uppercase mt-5">
         <svg
