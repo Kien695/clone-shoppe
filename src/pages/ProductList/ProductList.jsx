@@ -22,7 +22,7 @@ export default function ProductList() {
       order: queryPrams.order,
       price_max: queryPrams.price_max,
       price_min: queryPrams.price_min,
-      rate_filter: queryPrams.rate_filter,
+      rating_filter: queryPrams.rating_filter,
       category: queryPrams.category,
     },
     isUndefined

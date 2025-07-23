@@ -1,9 +1,94 @@
-import { createSearchParams, Link } from "react-router-dom";
+import { createSearchParams, Link, useNavigate } from "react-router-dom";
 import Button from "../../../Components/Button/Button";
 import classNames from "classnames";
+import { Controller, useForm } from "react-hook-form";
+import { useEffect } from "react";
+import { Rate } from "antd";
+import { omit } from "lodash";
 export default function AsideFilter({ queryConfig, categories }) {
   const { category } = queryConfig;
   // console.log(category, categories);
+  const {
+    control,
+    handleSubmit,
+    setFocus,
+    setError,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      price_min: "",
+      price_max: "",
+    },
+  });
+  const valueForm = watch();
+  const navigate = useNavigate();
+  const onSubmit = handleSubmit((data) => {
+    if (data.price_min == "") {
+      setError("price_min", {
+        type: "manual",
+        message: "Yêu cầu nhập giá",
+      });
+      setFocus("price_min");
+      return;
+    } else if (data.price_max == "") {
+      setError("price_max", {
+        type: "manual",
+        message: "Yêu cầu nhập giá",
+      });
+      setFocus("price_max");
+      return;
+    } else if (Number(data.price_max) < Number(data.price_min)) {
+      setError("price_max", {
+        type: "manual",
+        message: "Giá tối đa phải lớn hơn hoặc bằng giá tối thiểu",
+      });
+      setFocus("price_max");
+      return;
+    }
+    // Xử lý tiếp khi hợp lệ
+    else {
+      navigate({
+        pathname: "",
+        search: createSearchParams({
+          ...queryConfig,
+          price_max: data.price_max * 1000,
+          price_min: data.price_min * 1000,
+        }).toString(),
+      });
+    }
+  });
+  useEffect(() => {
+    if (queryConfig.price_min) {
+      setValue("price_min", Number(queryConfig.price_min) / 1000);
+    }
+    if (queryConfig.price_max) {
+      setValue("price_max", Number(queryConfig.price_max) / 1000);
+    }
+  }, [queryConfig.price_min, queryConfig.price_max, setValue]);
+  const handleClick = (number) => {
+    navigate({
+      pathname: "",
+      search: createSearchParams({
+        ...queryConfig,
+        rating_filter: String(number),
+      }).toString(),
+    });
+  };
+  const handleRemoveAll = () => {
+    navigate({
+      pathname: "",
+      search: createSearchParams(
+        omit(queryConfig, [
+          "category",
+          "price_min",
+          "price_max",
+          "rating_filter",
+        ])
+      ).toString(),
+    });
+  };
   return (
     <div className="py-4">
       <Link to="" className="flex items-center font-bold">
@@ -53,17 +138,6 @@ export default function AsideFilter({ queryConfig, categories }) {
             </li>
           );
         })}
-
-        {/* <li className="py-2 pl-2">
-          <Link to="" className="relative px-2">
-            Áo khoác
-          </Link>
-        </li>
-        <li className="py-2 pl-2">
-          <Link to="" className="relative px-2">
-            Điện thoại
-          </Link>
-        </li> */}
       </ul>
       <div className="flex items-center font-bold uppercase mt-5">
         <svg
@@ -85,35 +159,112 @@ export default function AsideFilter({ queryConfig, categories }) {
       <div className="h-[1px] bg-gray-300 my-4"></div>
       <div className="my-5">
         <div>Khoản giá</div>
-        <div className="flex items-start mt-3">
-          <input
-            type="text"
-            className="p-3 border border-gray-300 outline-none w-full rounded-sm focus:border-gray-500 focus:shadow-sm"
-            placeholder="đ Từ"
-          />
-          <div className="mx-2 mt-2 shrink-0">_</div>
-          <input
-            type="text"
-            className="p-3 border border-gray-300 outline-none w-full rounded-sm focus:border-gray-500 focus:shadow-sm"
-            placeholder="đ Đến"
-          />
-        </div>
-        <Button
-          type="submit"
-          className="mt-3 flex w-full items-center justify-center bg-red-500 py-2 px-2 text-sm uppercase text-white hover:bg-red-600"
-        >
-          Áp dụng
-        </Button>
+        <form className="mt-3 " onSubmit={onSubmit}>
+          <div className="flex items-start ">
+            <Controller
+              control={control}
+              name="price_min"
+              render={({ field }) => {
+                return (
+                  <input
+                    type="number"
+                    className="p-3 border border-gray-300 outline-none w-full rounded-sm focus:border-gray-500 focus:shadow-sm"
+                    placeholder="k Từ"
+                    onChange={field.onChange}
+                    value={field.value ?? ""}
+                    ref={field.ref}
+                  />
+                );
+              }}
+            />
+
+            <div className="mx-2 mt-2 shrink-0">_</div>
+            <Controller
+              control={control}
+              name="price_max"
+              render={({ field }) => {
+                return (
+                  <input
+                    type="number"
+                    className="p-3 border border-gray-300 outline-none w-full rounded-sm focus:border-gray-500 focus:shadow-sm"
+                    placeholder="k Đến"
+                    onChange={field.onChange}
+                    value={field.value ?? ""}
+                    ref={field.ref}
+                  />
+                );
+              }}
+            />
+          </div>
+          {(errors.price_min || errors.price_max) && (
+            <div className="text-red-500 text-sm mt-1 text-center">
+              {errors.price_min?.message || errors.price_max?.message}
+            </div>
+          )}
+          <Button
+            type="submit"
+            className="mt-3 flex w-full items-center justify-center bg-red-500 py-2 px-2 text-sm uppercase text-white hover:bg-red-600"
+          >
+            Áp dụng
+          </Button>
+        </form>
       </div>
       <div className="h-[1px] bg-gray-300 my-4"></div>
       <div className="my-5">
         <div>Đánh giá</div>
+        <div className="flex flex-col my-3">
+          <div className="p-1 ">
+            <Rate
+              style={{ fontSize: 14 }}
+              defaultValue={5}
+              disabled
+              onClick={() => handleClick(5)}
+            />
+          </div>
+          <div className="p-1 flex text-center">
+            <Rate
+              style={{ fontSize: 14 }}
+              defaultValue={4}
+              disabled
+              onClick={() => handleClick(4)}
+            />
+            <div className="text-sm ml-2">Trở lên</div>
+          </div>
+          <div className="p-1 flex text-center">
+            <Rate
+              style={{ fontSize: 14 }}
+              defaultValue={3}
+              disabled
+              onClick={() => handleClick(3)}
+            />
+            <div className="text-sm ml-2">Trở lên</div>
+          </div>
+          <div className="p-1 flex text-center">
+            <Rate
+              style={{ fontSize: 14 }}
+              defaultValue={2}
+              disabled
+              onClick={() => handleClick(2)}
+            />
+            <div className="text-sm ml-2">Trở lên</div>
+          </div>
+          <div className="p-1 flex text-center">
+            <Rate
+              style={{ fontSize: 14 }}
+              defaultValue={1}
+              disabled
+              onClick={() => handleClick(1)}
+            />
+            <div className="text-sm ml-2">Trở lên</div>
+          </div>
+        </div>
       </div>
       <div className="h-[1px] bg-gray-300 my-4"></div>
       <div className="my-5">
         <Button
           type="submit"
           className="mt-3 flex w-full items-center justify-center bg-red-500 py-2 px-2 text-sm uppercase text-white hover:bg-red-600"
+          onClick={handleRemoveAll}
         >
           Xóa tất cả
         </Button>

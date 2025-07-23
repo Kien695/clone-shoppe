@@ -40,6 +40,7 @@ export default function Product({ product }) {
             <Rate
               style={{ fontSize: 10 }}
               allowHalf
+              disabled
               defaultValue={product.rating}
             />
             <div className="flex mt-1 items-center justify-end text-xs">
